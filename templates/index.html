@@ -5,28 +5,63 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdn.plot.ly/plotly.css">
     <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #00703c; 
+        }
+        
+        form {
+            text-align: center;
+        }
+
         form div {
             margin-bottom: 10px;
+        }
+
+        img {
+            max-width: 17%;
+            height: auto;
+        }
+
+        .input-box {
+            background-color: #a7a177;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .input-box input[type="file"] {
+            margin-bottom: 20px; 
         }
     </style>
 </head>
 <body>
-    <h1>Upload a CSV File</h1>
     <form method="POST" enctype="multipart/form-data" action="/upload">
-        <input type="file" name="file">
         <div>
-            <label for="plot_gforce">Plot G-Force</label>
-            <input type="checkbox" name="plot_gforce" id="plot_gforce">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+            <h1>Upload a Flight Data File</h1>
         </div>
-        <div>
-            <label for="plot_velocity">Plot Velocity</label>
-            <input type="checkbox" name="plot_velocity" id="plot_velocity">
+        <div class="input-box">
+            <input type="file" name="file">
+            <div>
+                <label for="plot_gforce">Plot G-Force</label>
+                <input type="checkbox" name="plot_gforce" id="plot_gforce">
+            </div>
+            <div>
+                <label for="plot_velocity">Plot Velocity</label>
+                <input type="checkbox" name="plot_velocity" id="plot_velocity">
+            </div>
+            <div>
+                <label for="plot_altitude">Plot Altitude</label>
+                <input type="checkbox" name="plot_altitude" id="plot_altitude">
+            </div>
+            <input type="submit" value="Upload">
         </div>
-        <div>
-            <label for="plot_altitude">Plot Altitude</label>
-            <input type="checkbox" name="plot_altitude" id="plot_altitude">
-        </div>
-        <input type="submit" value="Upload">
     </form>
     <div id="plot_div">
         <!-- Plot will be inserted here -->
