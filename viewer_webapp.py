@@ -17,6 +17,9 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
     global df
+    color_gforce = request.form.get('color_gforce', '#ff0000')  # Default to red if no color selected
+    color_velocity = request.form.get('color_velocity', '#00ff00')  # Default to green
+    color_altitude = request.form.get('color_altitude', '#0000ff')  # Default to blue
     if 'file' not in request.files:
         return redirect(request.url)
     file = request.files['file']
@@ -31,6 +34,7 @@ def upload():
     plot_gforce = 'plot_gforce' in request.form
     plot_velocity = 'plot_velocity' in request.form 
     plot_altitude = 'plot_altitude' in request.form 
+    plot_radial_gforce = 'plot_radial_gforce' in request.form  # Added checkbox for radial g-force
 
     print("\n -- Checkbox: ", plot_velocity, "\n")
 
@@ -64,12 +68,21 @@ def upload():
     # Convert milliseconds to seconds
     df['seconds'] = df['milliseconds'] / 1000.0
 
-    return redirect(url_for('plot_data', plot_gforce=plot_gforce, plot_velocity=plot_velocity, plot_altitude=plot_altitude))
+    return redirect(url_for('plot_data', 
+                            plot_gforce=plot_gforce, 
+                            plot_velocity=plot_velocity, 
+                            plot_altitude=plot_altitude, 
+                            color_gforce=color_gforce, 
+                            color_velocity=color_velocity, 
+                            color_altitude=color_altitude))
 
 
 @app.route('/plot_data')
 def plot_data():
     global df
+    color_gforce = request.args.get('color_gforce', '#ff0000')
+    color_velocity = request.args.get('color_velocity', '#00ff00')
+    color_altitude = request.args.get('color_altitude', '#0000ff')
     if df is not None:
         # Check if 'g_force' column exists, and calculate it if not
         if 'g_force' not in df:
@@ -84,6 +97,12 @@ def plot_data():
             df['velocity_z'] = np.cumsum(df['linAccelerationz']) * (df['milliseconds'].diff() / 1000.0).fillna(0)
             df['velocity'] = np.sqrt(df['velocity_x']**2 + df['velocity_y']**2 + df['velocity_z']**2)
 
+        if 'radial_gforce' not in df:  # Added radial g-force calculation
+            angular_velocity = np.sqrt(df['angVelocityx']**2 + df['angVelocityy']**2 + df['angVelocityz']**2)
+            radius = 0.025  # You may need to adjust this based on your specific application
+            centripetal_acceleration = angular_velocity**2 * radius
+            df['radial_gforce'] = centripetal_acceleration / 9.8
+
         # Check if the "Plot G-Force" checkbox is selected
         plot_gforce = request.args.get('plot_gforce', default='off')
         # Check if the "Plot Velocity" checkbox is selected
@@ -91,26 +110,39 @@ def plot_data():
 
         plot_altitude = request.args.get('plot_altitude', default='off')
 
+        plot_radial_gforce = request.args.get('plot_radial_gforce', default='off')  # Added radial g-force
+
+
 
         # Create a Plotly figure with both G-Force and Velocity
         fig = px.line(labels={'g_force': 'G-Force', 'velocity': 'Velocity'})
 
         # Customize the figure (add titles, labels, etc. if needed)
         fig.update_layout(
-            title="Interactive G-Force and Velocity Plot",
+            title="Plot",
             xaxis_title="Seconds",
             yaxis_title="Values",
         )
 
         # Add both G-Force and Velocity to the figure if the checkboxes are selected
         if plot_gforce == 'True':
-            fig.add_trace(px.line(df, x='seconds', y='g_force').data[0])
+            trace = px.line(df, x='seconds', y='g_force').data[0]
+            trace.line.color = color_gforce  # Modify the trace color here
+            fig.add_trace(trace) 
 
         if plot_velocity == 'True':
-            fig.add_trace(px.line(df, x='seconds', y='velocity').data[0])
+            trace = px.line(df, x='seconds', y='velocity').data[0]
+            trace.line.color = color_velocity  # Modify the trace color here
+            fig.add_trace(trace)
 
         if plot_altitude == 'True':
-            fig.add_trace(px.line(df, x='seconds', y='altitude').data[0])
+            trace = px.line(df, x='seconds', y='altitude').data[0]
+            trace.line.color = color_altitude  # Modify the trace color here
+            fig.add_trace(trace)
+
+
+        if plot_radial_gforce == 'True':  # Added radial g-force plot
+            fig.add_trace(px.line(df, x='seconds', y='radial_gforce').data[0])
 
 
         # Convert the figure to HTML and serve it
