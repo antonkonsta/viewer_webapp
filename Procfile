@@ -1,1 +1,1 @@
-web: gunicorn viewer_webapp:csviewer
+web: gunicorn viewer_webapp:__name__
