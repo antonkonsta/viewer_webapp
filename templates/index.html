@@ -4,17 +4,28 @@
     <title>CSV File Upload</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdn.plot.ly/plotly.css">
+    <style>
+        form div {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Upload a CSV File</h1>
     <form method="POST" enctype="multipart/form-data" action="/upload">
         <input type="file" name="file">
-        <label for="plot_gforce">Plot G-Force</label>
-        <input type="checkbox" name="plot_gforce" id="plot_gforce">
-        <label for="plot_velocity">Plot Velocity</label>
-        <input type="checkbox" name="plot_velocity" id="plot_velocity">
-        <label for="plot_altitude">Plot Altitude</label>
-        <input type="checkbox" name="plot_altitude" id="plot_altitude">
+        <div>
+            <label for="plot_gforce">Plot G-Force</label>
+            <input type="checkbox" name="plot_gforce" id="plot_gforce">
+        </div>
+        <div>
+            <label for="plot_velocity">Plot Velocity</label>
+            <input type="checkbox" name="plot_velocity" id="plot_velocity">
+        </div>
+        <div>
+            <label for="plot_altitude">Plot Altitude</label>
+            <input type="checkbox" name="plot_altitude" id="plot_altitude">
+        </div>
         <input type="submit" value="Upload">
     </form>
     <div id="plot_div">
