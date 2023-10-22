@@ -39,6 +39,7 @@ def open_csv_file():
             'gravityx': float,
             'gravityy': float,
             'gravityz': float,
+            'altitude': float,
         }
 
         # Read the CSV file with specified data types

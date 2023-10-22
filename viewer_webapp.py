@@ -30,6 +30,8 @@ def upload():
     # Check if the "Plot G-Force" checkbox is selected
     plot_gforce = 'plot_gforce' in request.form
     plot_velocity = 'plot_velocity' in request.form 
+    plot_altitude = 'plot_altitude' in request.form 
+
     print("\n -- Checkbox: ", plot_velocity, "\n")
 
     # Define a dictionary to map column names to data types
@@ -53,6 +55,7 @@ def upload():
         'gravityx': float,
         'gravityy': float,
         'gravityz': float,
+        'altitude' : float,
     }
 
     # Read the CSV file with specified data types
@@ -61,7 +64,8 @@ def upload():
     # Convert milliseconds to seconds
     df['seconds'] = df['milliseconds'] / 1000.0
 
-    return redirect(url_for('plot_data', plot_gforce=plot_gforce, plot_velocity=plot_velocity))
+    return redirect(url_for('plot_data', plot_gforce=plot_gforce, plot_velocity=plot_velocity, plot_altitude=plot_altitude))
+
 
 @app.route('/plot_data')
 def plot_data():
@@ -85,6 +89,9 @@ def plot_data():
         # Check if the "Plot Velocity" checkbox is selected
         plot_velocity = request.args.get('plot_velocity', default='off')
 
+        plot_altitude = request.args.get('plot_altitude', default='off')
+
+
         # Create a Plotly figure with both G-Force and Velocity
         fig = px.line(labels={'g_force': 'G-Force', 'velocity': 'Velocity'})
 
@@ -101,6 +108,10 @@ def plot_data():
 
         if plot_velocity == 'True':
             fig.add_trace(px.line(df, x='seconds', y='velocity').data[0])
+
+        if plot_altitude == 'True':
+            fig.add_trace(px.line(df, x='seconds', y='altitude').data[0])
+
 
         # Convert the figure to HTML and serve it
         plot_div = fig.to_html(full_html=False)
