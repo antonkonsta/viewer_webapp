@@ -4,6 +4,8 @@ import numpy as np
 import os
 import plotly.express as px
 
+app = Flask(__name__)
+
 # Initialize global variables
 payload_mass = None
 df = None
