@@ -1,1 +1,1 @@
-web: gunicorn viewer_webapp.py:csviewer
+gunicorn viewer_webapp:csviewer
