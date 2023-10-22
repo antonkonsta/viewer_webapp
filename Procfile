@@ -1,1 +1,1 @@
-web: gunicorn viewer_webapp:__name__
+web: gunicorn app:viewer_webapp
