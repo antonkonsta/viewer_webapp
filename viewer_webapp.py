@@ -20,6 +20,8 @@ def upload():
     color_gforce = request.form.get('color_gforce', '#ff0000')  # Default to red if no color selected
     color_velocity = request.form.get('color_velocity', '#00ff00')  # Default to green
     color_altitude = request.form.get('color_altitude', '#0000ff')  # Default to blue
+    color_lin_acceleration = request.form.get('color_lin_acceleration', '#ffa500')  # Default to yellow
+    color_acceleration = request.form.get('color_acceleration', '#FC0FC0')  # Default to pink
     if 'file' not in request.files:
         return redirect(request.url)
     file = request.files['file']
@@ -36,6 +38,11 @@ def upload():
     plot_altitude = 'plot_altitude' in request.form 
     plot_radial_gforce = 'plot_radial_gforce' in request.form  # Added checkbox for radial g-force
     compare = 'compare' in request.form
+    plot_lin_acceleration = 'plot_lin_acceleration' in request.form 
+    plot_acceleration = 'plot_acceleration' in request.form 
+
+
+    
 
     print("\n -- Checkbox: ", plot_velocity, "\n")
 
@@ -76,7 +83,11 @@ def upload():
                             color_gforce=color_gforce, 
                             color_velocity=color_velocity, 
                             color_altitude=color_altitude,
-                            compare=compare))
+                            compare=compare,
+                            plot_lin_acceleration = plot_lin_acceleration,
+                            color_lin_acceleration = color_lin_acceleration,
+                            plot_acceleration = plot_acceleration,
+                            color_acceleration = color_acceleration))
 
 
 @app.route('/plot_data')
@@ -85,6 +96,8 @@ def plot_data():
     color_gforce = request.args.get('color_gforce', '#ff0000')
     color_velocity = request.args.get('color_velocity', '#00ff00')
     color_altitude = request.args.get('color_altitude', '#0000ff')
+    color_lin_acceleration = request.args.get('color_lin_acceleration', '#ffa500')
+    color_acceleration = request.args.get('color_acceleration', '#FC0FC0')
     if df is not None:
         # Check if 'g_force' column exists, and calculate it if not
         
@@ -105,6 +118,17 @@ def plot_data():
             radius = 0.025  # You may need to adjust this based on your specific application
             centripetal_acceleration = angular_velocity**2 * radius
             df['radial_gforce'] = centripetal_acceleration / 9.8
+
+        if 'lin_acceleration_magnitude' not in df:
+            df['lin_acceleration_magnitude'] = np.sqrt(df['linAccelerationx']**2 + df['linAccelerationy']**2 + df['linAccelerationz']**2)
+
+        if 'acceleration_magnitude' not in df:
+            df['acceleration_magnitude'] = np.sqrt(df['accelerationx']**2 + df['accelerationy']**2 + df['accelerationz']**2)
+        
+        
+        plot_lin_acceleration = request.args.get('plot_lin_acceleration', default='off')
+
+        plot_acceleration = request.args.get('plot_acceleration', default='off')
 
         # Check if the "Plot G-Force" checkbox is selected
         plot_gforce = request.args.get('plot_gforce', default='off')
@@ -129,7 +153,8 @@ def plot_data():
 
         total_height = 680  # Adjust as needed
         num_plots = sum([plot_gforce == 'True', plot_velocity == 'True', 
-                        plot_altitude == 'True', plot_radial_gforce == 'True'])
+                        plot_altitude == 'True', plot_radial_gforce == 'True', 
+                        plot_lin_acceleration == 'True', plot_acceleration == 'True'])
         plot_height = total_height // max(1, num_plots) if num_plots else total_height
 
         # Add both G-Force and Velocity to the figure if the checkboxes are selected
@@ -157,6 +182,20 @@ def plot_data():
                 fig.data[0].line.color = color_altitude
                 plots.append(fig.to_html(full_html=False))
 
+            if plot_lin_acceleration == 'True':
+                fig = px.line(df, x='seconds', y='lin_acceleration_magnitude', labels={'lin_acceleration_magnitude': 'Linear Acceleration'})
+                fig.update_layout(title="Linear Acceleration", xaxis_title="Seconds", yaxis_title="Linear Acceleration",
+                                  height=plot_height)  # Adjust height here
+                fig.data[0].line.color = color_lin_acceleration
+                plots.append(fig.to_html(full_html=False))
+
+            if plot_acceleration == 'True':
+                fig = px.line(df, x='seconds', y='acceleration_magnitude', labels={'acceleration_magnitude': 'Acceleration'})
+                fig.update_layout(title="Acceleration", xaxis_title="Seconds", yaxis_title="Acceleration",
+                                  height=plot_height)  # Adjust height here
+                fig.data[0].line.color = color_acceleration
+                plots.append(fig.to_html(full_html=False))
+
             # ... (add similar code for other plots)
 
             return ''.join(plots)
@@ -180,14 +219,22 @@ def plot_data():
             if plot_radial_gforce == 'True':  # Added radial g-force plot
                 fig.add_trace(px.line(df, x='seconds', y='radial_gforce').data[0])
             # Convert the figure to HTML and serve it
+
+            if plot_lin_acceleration == 'True':
+                trace = px.line(df, x='seconds', y='lin_acceleration_magnitude').data[0]
+                trace.line.color = color_lin_acceleration  # Modify the trace color here
+                fig.add_trace(trace)
+
+            if plot_acceleration == 'True':
+                trace = px.line(df, x='seconds', y='acceleration_magnitude').data[0]
+                trace.line.color = color_acceleration  # Modify the trace color here
+                fig.add_trace(trace)
+
             plot_div = fig.to_html(full_html=False)
 
             return plot_div
 
-
-
     return "No data to plot."
-
 
 if __name__ == '__main__':
     app.run()
