@@ -1,1 +1,1 @@
-web: gunicorn viewer_webapp:app
+web: python3 viewer_webapp.py 
