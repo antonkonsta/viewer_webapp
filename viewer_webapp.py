@@ -4,17 +4,17 @@ import numpy as np
 import os
 import plotly.express as px
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 # Initialize global variables
 payload_mass = None
 df = None
 
-@app.route('/')
+@application.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/upload', methods=['POST'])
+@application.route('/upload', methods=['POST'])
 def upload():
     global df
     color_gforce = request.form.get('color_gforce', '#ff0000')  # Default to red if no color selected
@@ -90,7 +90,7 @@ def upload():
                             color_acceleration = color_acceleration))
 
 
-@app.route('/plot_data')
+@application.route('/plot_data')
 def plot_data():
     global df
     color_gforce = request.args.get('color_gforce', '#ff0000')
@@ -237,4 +237,4 @@ def plot_data():
     return "No data to plot."
 
 if __name__ == '__main__':
-    app.run()
+    application.run()
